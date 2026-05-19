@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>People Intelligence — CloudWalk</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,300;1,400&display=swap');
+
+:root {
+  --black: #000000;
+  --white: #ffffff;
+  --gray-100: #f0f0f0;
+  --gray-200: #d8d8d8;
+  --gray-300: #b8b8b8;
+  --gray-400: #909090;
+  --gray-500: #686868;
+  --gray-600: #383838;
+  --gray-700: #242424;
+  --gray-800: #141414;
+  --accent: #d4f500;
+  --accent-dim: rgba(212,245,0,0.10);
+  --accent-border: rgba(212,245,0,0.28);
+  --red: #ff5555;
+  --amber: #ffbb00;
+  --green: #00dd99;
+  --blue: #5599ff;
+  --border: rgba(255,255,255,0.10);
+  --border-strong: rgba(255,255,255,0.20);
+}
+
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  background:var(--black);
+  color:var(--gray-200);
+  font-family:'Inter',-apple-system,sans-serif;
+  font-weight:400;
+  font-size:15px;
+  line-height:1.65;
+  min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* noise */
+body::after{
+  content:'';position:fixed;inset:0;opacity:0.02;
+  background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  pointer-events:none;z-index:9999;
+}
+
+.wrap{max-width:1280px;margin:0 auto;padding:0 40px;}
+@media(max-width:768px){.wrap{padding:0 20px;}}
+
+/* ── TOPBAR ── */
+.topbar{
+  position:sticky;top:0;z-index:100;
+  border-bottom:1px solid var(--border);
+  background:rgba(0,0,0,0.88);
+  backdrop-filter:blur(20px);
+  -webkit-backdrop-filter:blur(20px);
+}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;height:56px;}
+.cw-brand{display:flex;align-items:center;gap:0;}
+.cw-wordmark{
+  font-size:16px;font-weight:800;letter-spacing:-0.03em;
+  color:var(--white);text-decoration:none;
+}
+.cw-pipe{width:1px;height:18px;background:var(--border-strong);margin:0 14px;}
+.cw-section{font-size:10px;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;color:var(--gray-400);}
+.ai-live{
+  display:flex;align-items:center;gap:7px;
+  padding:4px 12px;
+  border:1px solid var(--accent-border);
+  background:var(--accent-dim);
+  font-size:9px;font-weight:700;letter-spacing:0.16em;text-transform:uppercase;color:var(--accent);
+}
+.live-dot{width:5px;height:5px;background:var(--accent);border-radius:50%;animation:blink 2s ease infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.25}}
+
+/* ── HERO ── */
+.hero{padding:72px 0 52px;border-bottom:1px solid var(--border);}
+.eyebrow{
+  font-size:10px;font-weight:500;letter-spacing:0.2em;text-transform:uppercase;
+  color:var(--gray-400);margin-bottom:20px;display:flex;align-items:center;gap:10px;
+}
+.eyebrow::before{content:'//';color:var(--accent);font-weight:800;letter-spacing:0;}
+.hero-title{
+  font-size:clamp(38px,6vw,74px);font-weight:800;
+  letter-spacing:-0.035em;line-height:1.0;margin-bottom:28px;
+}
+.hero-title em{font-style:normal;color:var(--accent);}
+.hero-row{display:flex;align-items:center;gap:28px;flex-wrap:wrap;}
+.h-stat{display:flex;flex-direction:column;}
+.h-val{font-size:26px;font-weight:700;letter-spacing:-0.02em;line-height:1;}
+.h-label{font-size:9px;font-weight:500;letter-spacing:0.14em;text-transform:uppercase;color:var(--gray-400);margin-top:4px;}
+.h-sep{width:1px;height:32px;background:var(--border-strong);}
+
+/* ── NAV ── */
+.nav-bar{display:flex;border-bottom:1px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.nav-bar::-webkit-scrollbar{display:none;}
+.ntab{
+  padding:15px 22px;font-size:11px;font-weight:600;letter-spacing:0.12em;
+  text-transform:uppercase;color:var(--gray-300);cursor:pointer;border:none;
+  background:none;white-space:nowrap;border-bottom:2px solid transparent;
+  margin-bottom:-1px;transition:color .2s,border-color .2s;
+}
+.ntab:hover{color:var(--white);}
+.ntab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* ── PAGES ── */
+.page{display:none;padding:48px 0 80px;}
+.page.active{display:block;}
+
+/* ── SECTION LABEL ── */
+.slabel{
+  font-size:11px;font-weight:600;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--gray-400);margin-bottom:14px;display:flex;align-items:center;gap:8px;
+}
+.slabel::before{content:'—';color:var(--accent);}
+
+/* ── KPI STRIP ── */
+.kpis{display:grid;grid-template-columns:repeat(5,1fr);border:1px solid var(--border);margin-bottom:48px;}
+@media(max-width:900px){.kpis{grid-template-columns:repeat(2,1fr);}}
+.kpi{padding:28px 24px;border-right:1px solid var(--border);position:relative;overflow:hidden;}
+.kpi:last-child{border-right:none;}
+.kpi::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:var(--accent);transform:scaleX(0);transform-origin:left;
+  transition:transform .4s cubic-bezier(.16,1,.3,1);
+}
+.kpi:hover::after{transform:scaleX(1);}
+.kpi-n{font-size:38px;font-weight:800;letter-spacing:-0.035em;line-height:1;color:var(--white);}
+.kpi-n.a{color:var(--accent);}
+.kpi-n.r{color:var(--red);}
+.kpi-l{font-size:11px;font-weight:500;letter-spacing:0.10em;text-transform:uppercase;color:var(--gray-400);margin-top:6px;}
+.kpi-s{font-size:13px;color:var(--gray-500);margin-top:3px;}
+
+/* ── GRID ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:1px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1px;background:var(--border);}
+.gauto{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);}
+@media(max-width:900px){.g2,.g3{grid-template-columns:1fr;}}
+.mb48{margin-bottom:48px;}
+
+/* ── CARD ── */
+.card{background:var(--black);padding:32px;}
+.clabel{
+  font-size:11px;font-weight:600;letter-spacing:0.14em;text-transform:uppercase;
+  color:var(--gray-400);margin-bottom:22px;display:flex;align-items:center;gap:8px;
+}
+.clabel span{color:var(--accent);}
+
+/* ── FUNNEL ── */
+.funnel{display:flex;flex-direction:column;gap:12px;}
+.frow{display:flex;align-items:center;gap:14px;}
+.fstage{
+  font-size:11px;font-weight:500;letter-spacing:0.06em;text-transform:uppercase;
+  color:var(--gray-300);width:100px;flex-shrink:0;text-align:right;
+}
+.ftrack{flex:1;height:2px;background:var(--gray-700);position:relative;}
+.fbar{
+  position:absolute;left:0;top:0;height:2px;
+  background:var(--accent);
+  transition:width 1.4s cubic-bezier(.16,1,.3,1);
+}
+.fbar.dim{background:var(--gray-500);}
+.fcnt{font-size:20px;font-weight:700;letter-spacing:-0.02em;color:var(--white);width:48px;text-align:right;}
+.fpct{font-size:11px;color:var(--gray-400);width:68px;font-weight:500;}
+
+/* ── H-BAR ── */
+.hbars{display:flex;flex-direction:column;gap:18px;}
+.hrow{display:flex;flex-direction:column;gap:6px;}
+.hmeta{display:flex;justify-content:space-between;align-items:baseline;}
+.hlabel{font-size:13px;color:var(--gray-200);}
+.hval{font-size:14px;font-weight:700;color:var(--white);letter-spacing:-0.01em;}
+.htrack{height:2px;background:var(--gray-700);position:relative;}
+.hfill{
+  position:absolute;left:0;top:0;bottom:0;
+  background:var(--accent);
+  transition:width 1.2s cubic-bezier(.16,1,.3,1);
+}
+.hfill.red{background:var(--red);}
+.hfill.amber{background:var(--amber);}
+.hfill.green{background:var(--green);}
+.hfill.dim{background:var(--gray-500);}
+
+/* ── SCORES ── */
+.scorelist{display:flex;flex-direction:column;gap:26px;}
+.score-name{font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--gray-300);margin-bottom:10px;}
+.sbars{display:flex;flex-direction:column;gap:9px;}
+.srow{display:flex;align-items:center;gap:12px;}
+.swho{font-size:11px;color:var(--gray-400);width:64px;text-align:right;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0;}
+.strack{flex:1;height:2px;background:var(--gray-700);position:relative;}
+.sfill{position:absolute;left:0;top:0;bottom:0;transition:width 1.2s cubic-bezier(.16,1,.3,1);}
+.sfill.h{background:var(--accent);}
+.sfill.n{background:var(--gray-500);}
+.sval{font-size:13px;font-weight:700;width:36px;}
+
+/* ── TABLE ── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  text-align:left;padding:12px 16px;
+  font-size:11px;font-weight:600;letter-spacing:0.10em;text-transform:uppercase;
+  color:var(--gray-400);border-bottom:1px solid var(--border);
+}
+.tbl td{
+  padding:14px 16px;border-bottom:1px solid rgba(255,255,255,0.05);
+  font-size:13px;color:var(--gray-200);
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(255,255,255,0.025);}
+.tbl .s{color:var(--white);font-weight:600;}
+.tbl .a{color:var(--accent);font-weight:700;}
+.tbl .m{color:var(--gray-500);}
+.tag{
+  display:inline-block;padding:3px 9px;
+  font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;border:1px solid;
+}
+.tg{border-color:var(--green);color:var(--green);}
+.ta{border-color:var(--amber);color:var(--amber);}
+.tr{border-color:var(--red);color:var(--red);}
+
+/* ── INSIGHTS ── */
+.irow{
+  display:flex;gap:0;border:1px solid var(--border);margin-bottom:1px;
+  transition:border-color .2s;
+}
+.irow:hover{border-color:var(--border-strong);}
+.inum{
+  font-size:11px;font-weight:700;letter-spacing:0.08em;color:var(--accent);
+  width:56px;flex-shrink:0;padding:22px 0 22px 22px;
+  border-right:1px solid var(--border);display:flex;align-items:flex-start;
+}
+.ibody{padding:22px 26px;}
+.ititle{font-size:15px;font-weight:600;color:var(--white);margin-bottom:7px;}
+.itext{font-size:13px;color:var(--gray-300);line-height:1.7;}
+.itext strong{color:var(--accent);font-weight:600;}
+
+/* ── SIGNALS ── */
+.sgrid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);margin-bottom:48px;}
+@media(max-width:700px){.sgrid{grid-template-columns:1fr;}}
+.sblock{background:var(--black);padding:28px;}
+.shdr{display:flex;align-items:center;gap:10px;margin-bottom:18px;}
+.sdot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.stitle{font-size:12px;font-weight:700;letter-spacing:0.10em;text-transform:uppercase;}
+.slist{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.slist li{font-size:13px;color:var(--gray-200);display:flex;align-items:flex-start;gap:10px;line-height:1.55;}
+.slist li::before{content:'—';color:var(--gray-600);flex-shrink:0;}
+
+/* ── AI ── */
+.ai-panel{border:1px solid var(--border);margin-bottom:32px;}
+.ai-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 26px;border-bottom:1px solid var(--border);
+}
+.ai-title{
+  font-size:10px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;
+  color:var(--white);display:flex;align-items:center;gap:10px;
+}
+.ai-title::before{content:'//';color:var(--accent);}
+.ai-model{font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--gray-400);}
+.ai-body{padding:26px;}
+.qprompts{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px;}
+.qprompts span{font-size:11px;letter-spacing:0.10em;text-transform:uppercase;color:var(--gray-500);align-self:center;margin-right:4px;}
+.qbtn{
+  padding:6px 14px;border:1px solid var(--border-strong);background:none;
+  color:var(--gray-200);font-family:inherit;font-size:12px;cursor:pointer;transition:all .2s;
+}
+.qbtn:hover{border-color:var(--accent);color:var(--accent);}
+.ai-row{display:flex;gap:0;margin-bottom:18px;}
+.ai-input{
+  flex:1;background:var(--gray-800);border:1px solid var(--border-strong);border-right:none;
+  color:var(--white);font-family:inherit;font-size:14px;padding:13px 16px;outline:none;
+  transition:border-color .2s;
+}
+.ai-input:focus{border-color:var(--accent);}
+.ai-input::placeholder{color:var(--gray-500);}
+.ai-btn{
+  padding:13px 24px;background:var(--accent);color:var(--black);border:none;cursor:pointer;
+  font-family:inherit;font-size:11px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;
+  transition:opacity .2s;white-space:nowrap;
+}
+.ai-btn:hover{opacity:.85;}
+.ai-btn:disabled{opacity:.35;cursor:not-allowed;}
+.ai-out{
+  min-height:100px;background:var(--gray-800);border:1px solid var(--border);
+  padding:20px;font-size:14px;line-height:1.75;color:var(--gray-200);
+}
+.ai-ph{color:var(--gray-400);font-style:italic;}
+.ai-loading{display:flex;align-items:center;gap:10px;color:var(--gray-500);font-size:12px;}
+.dots{display:flex;gap:4px;}
+.dot{width:4px;height:4px;background:var(--accent);border-radius:50%;animation:dp 1.2s ease infinite;}
+.dot:nth-child(2){animation-delay:.2s;}.dot:nth-child(3){animation-delay:.4s;}
+@keyframes dp{0%,80%,100%{opacity:.12}40%{opacity:1}}
+
+/* ── USE CASES ── */
+.ucgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--border);margin-bottom:48px;}
+.uc{background:var(--black);padding:28px 24px;}
+.ucn{font-size:11px;font-weight:700;letter-spacing:0.10em;color:var(--accent);margin-bottom:10px;}
+.uct{font-size:15px;font-weight:600;color:var(--white);margin-bottom:8px;}
+.ucd{font-size:13px;color:var(--gray-300);line-height:1.65;}
+
+/* ── RECS ── */
+.ritem{
+  display:flex;gap:0;border:1px solid var(--border);margin-bottom:1px;
+  transition:border-color .2s;
+}
+.ritem:hover{border-color:var(--border-strong);}
+.rpri{
+  width:76px;flex-shrink:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  padding:22px 10px;border-right:1px solid var(--border);gap:5px;
+}
+.rplab{
+  font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;
+  writing-mode:vertical-rl;transform:rotate(180deg);
+}
+.rnum{font-size:24px;font-weight:800;letter-spacing:-0.02em;line-height:1;}
+.rcnt{padding:24px 28px;flex:1;}
+.rtitle{font-size:16px;font-weight:600;color:var(--white);margin-bottom:9px;}
+.rtext{font-size:13px;color:var(--gray-200);line-height:1.7;margin-bottom:10px;}
+.rimp{font-size:11px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;}
+.rimp::before{content:'↗ ';}
+.pc{border-left:2px solid var(--red);}
+.pc .rplab,.pc .rnum{color:var(--red);}
+.pc .rimp{color:var(--red);}
+.ph{border-left:2px solid var(--amber);}
+.ph .rplab,.ph .rnum{color:var(--amber);}
+.ph .rimp{color:var(--amber);}
+.pm{border-left:2px solid var(--accent);}
+.pm .rplab,.pm .rnum{color:var(--accent);}
+.pm .rimp{color:var(--accent);}
+.po{border-left:2px solid var(--green);}
+.po .rplab,.po .rnum{color:var(--green);}
+.po .rimp{color:var(--green);}
+
+/* ── FOOTER ── */
+.foot{border-top:1px solid var(--border);padding:22px 0;}
+.foot-inner{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+.foot-txt{font-size:12px;color:var(--gray-500);letter-spacing:0.05em;}
+</style>
+</head>
+<body>
+
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <div class="cw-brand">
+      <span class="cw-wordmark">CloudWalk</span>
+      <div class="cw-pipe"></div>
+      <span class="cw-section">People Intelligence</span>
+    </div>
+    <div class="ai-live"><div class="live-dot"></div>AI · Live</div>
+  </div>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Talent Acquisition · Sourcing Analysis</div>
+    <h1 class="hero-title">Recruitment<br><em>Intelligence</em></h1>
+    <div class="hero-row">
+      <div class="h-stat"><div class="h-val">601</div><div class="h-label">Candidates Sourced</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-val">8</div><div class="h-label">Source Channels</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-val">8.2%</div><div class="h-label">Overall Hire Rate</div></div>
+      <div class="h-sep"></div>
+      <div class="h-stat"><div class="h-val">49</div><div class="h-label">Total Hired</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<div class="wrap">
+  <div class="nav-bar">
+    <button class="ntab active" onclick="showPage('overview',this)">Overview</button>
+    <button class="ntab" onclick="showPage('channels',this)">Channels</button>
+    <button class="ntab" onclick="showPage('recruiters',this)">Recruiters</button>
+    <button class="ntab" onclick="showPage('signals',this)">Signals</button>
+    <button class="ntab" onclick="showPage('ai',this)">AI Assistant</button>
+    <button class="ntab" onclick="showPage('recommendations',this)">Recommendations</button>
+  </div>
+</div>
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="page active" id="page-overview">
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-n a">601</div><div class="kpi-l">Total Sourced</div><div class="kpi-s">8 channels</div></div>
+    <div class="kpi"><div class="kpi-n">67.9%</div><div class="kpi-l">Response Rate</div><div class="kpi-s">408 responded</div></div>
+    <div class="kpi"><div class="kpi-n">49</div><div class="kpi-l">Hired</div><div class="kpi-s">8.2% conversion</div></div>
+    <div class="kpi"><div class="kpi-n r">34.9%</div><div class="kpi-l">No-Response Rate</div><div class="kpi-s">Biggest leak</div></div>
+    <div class="kpi"><div class="kpi-n">79.1%</div><div class="kpi-l">Offer Accept Rate</div><div class="kpi-s">49 of 62 offers</div></div>
+  </div>
+  <div class="g2 mb48">
+    <div class="card">
+      <div class="clabel"><span>01</span> Hiring Funnel</div>
+      <div class="funnel" id="funnel-chart"></div>
+    </div>
+    <div class="card">
+      <div class="clabel"><span>02</span> Drop-Off Reasons</div>
+      <div class="hbars" id="rejection-chart"></div>
+      <div style="margin-top:22px;padding-top:18px;border-top:1px solid var(--border);font-size:13px;color:var(--gray-400);line-height:1.65;">
+        <span style="color:var(--red);font-weight:600;">No response accounts for 35%</span> of all rejections — more than all other reasons combined.
+      </div>
+    </div>
+  </div>
+  <div class="slabel">Key Insights</div>
+  <div class="mb48">
+    <div class="irow">
+      <div class="inum">01.</div>
+      <div class="ibody"><div class="ititle">Funnel Efficiency</div><div class="itext">Only <strong>8.2%</strong> of sourced candidates convert to hire. The sharpest drop is at first contact — 34.9% never respond. Once engaged, 75.5% of responders pass screening.</div></div>
+    </div>
+    <div class="irow">
+      <div class="inum">02.</div>
+      <div class="ibody"><div class="ititle">Best Channels</div><div class="itext"><strong>GitHub (11%)</strong> and <strong>Inbound (10.1%)</strong> lead all channels — outperforming average by 30%+. GitHub candidates arrive pre-vetted via public work. Inbound signals genuine intent.</div></div>
+    </div>
+    <div class="irow">
+      <div class="inum">03.</div>
+      <div class="ibody"><div class="ititle">Scores Predict Outcome</div><div class="itext">Hired candidates score <strong>~10 points higher</strong> across all three dimensions. Technical: 82.4 vs 72.9 · Behavior: 80.1 vs 74.0 · Manager: 80.9 vs 73.1. A composite ≥80 is a reliable fast-track signal.</div></div>
+    </div>
+    <div class="irow">
+      <div class="inum">04.</div>
+      <div class="ibody"><div class="ititle">Seniority Drives Conversion</div><div class="itext">Staff closes at <strong>13.3%</strong> vs Junior at 4.6% — a 3× gap. Experienced profiles yield dramatically better ROI per sourcing contact.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ CHANNELS ═══ -->
+<div class="page" id="page-channels">
+<div class="wrap">
+  <div class="g2 mb48">
+    <div class="card">
+      <div class="clabel"><span>—</span> Hire Rate by Channel</div>
+      <div class="hbars" id="channel-hire-chart"></div>
+    </div>
+    <div class="card">
+      <div class="clabel"><span>—</span> Response Rate by Channel</div>
+      <div class="hbars" id="channel-resp-chart"></div>
+    </div>
+  </div>
+  <div class="slabel">Channel Scorecard</div>
+  <div style="border:1px solid var(--border);margin-bottom:48px;overflow-x:auto;">
+    <table class="tbl" id="channel-table"></table>
+  </div>
+  <div class="slabel">Channel Intelligence</div>
+  <div class="mb48">
+    <div class="irow" style="border-left:2px solid var(--accent);">
+      <div class="inum">★</div>
+      <div class="ibody"><div class="ititle">GitHub — Quality Leader</div><div class="itext"><strong>11% hire rate</strong>. Portfolios replace lengthy screenings. Candidates arrive pre-vetted via public work. Best allocation for technical roles.</div></div>
+    </div>
+    <div class="irow" style="border-left:2px solid var(--accent);">
+      <div class="inum">★</div>
+      <div class="ibody"><div class="ititle">Inbound — Intent Signal</div><div class="itext"><strong>10.1% hire rate</strong> + <strong>79.7% response rate</strong> (highest of all channels). Self-selected applicants drive quality. Strong employer brand = high-quality organic flow.</div></div>
+    </div>
+    <div class="irow" style="border-left:2px solid var(--red);">
+      <div class="inum">!</div>
+      <div class="ibody"><div class="ititle">Indicação — Underperforming</div><div class="itext"><strong>4.7% hire rate</strong> with only <strong>59.4% response rate</strong> — worst of all channels. Referrals are misaligned or poorly pre-screened. Needs structured qualification gates before entry.</div></div>
+    </div>
+    <div class="irow" style="border-left:2px solid var(--amber);">
+      <div class="inum">~</div>
+      <div class="ibody"><div class="ititle">LinkedIn — Strong Post-Response</div><div class="itext">Highest <strong>post-response screen pass rate (86.3%)</strong>. Once LinkedIn candidates engage, they're highly qualified. The challenge is initial activation — only 63% respond to outreach.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ RECRUITERS ═══ -->
+<div class="page" id="page-recruiters">
+<div class="wrap">
+  <div class="g2 mb48">
+    <div class="card">
+      <div class="clabel"><span>—</span> Hire Rate by Recruiter</div>
+      <div class="hbars" id="rec-hire-chart"></div>
+    </div>
+    <div class="card">
+      <div class="clabel"><span>—</span> Pipeline Volume</div>
+      <div class="hbars" id="rec-vol-chart"></div>
+    </div>
+  </div>
+  <div class="slabel">Recruiter Performance Matrix</div>
+  <div style="border:1px solid var(--border);margin-bottom:48px;overflow-x:auto;">
+    <table class="tbl" id="recruiter-table"></table>
+  </div>
+  <div class="slabel">Performance Analysis</div>
+  <div class="mb48">
+    <div class="irow" style="border-left:2px solid var(--accent);">
+      <div class="inum">01.</div>
+      <div class="ibody"><div class="ititle">Bruno — Top Performer</div><div class="itext"><strong>15.3% hire rate</strong> across 98 candidates. Best absolute and relative performance. Document the sourcing approach, outreach scripts, and evaluation criteria.</div></div>
+    </div>
+    <div class="irow" style="border-left:2px solid var(--accent);">
+      <div class="inum">02.</div>
+      <div class="ibody"><div class="ititle">Ana — Efficiency Champion</div><div class="itext"><strong>13.3% hire rate</strong> with the smallest pipeline (75 candidates). Highest conversion efficiency on the team. Learnings should be shared across the group.</div></div>
+    </div>
+    <div class="irow" style="border-left:2px solid var(--red);">
+      <div class="inum">03.</div>
+      <div class="ibody"><div class="ititle">Fernanda & Gustavo — Gap Analysis Needed</div><div class="itext"><strong>3.9% and 5.0%</strong> hire rates despite large pipelines (103 and 121). The 4× gap vs top performers points to channel mix, role complexity, or process differences. Structured coaching is warranted.</div></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ SIGNALS ═══ -->
+<div class="page" id="page-signals">
+<div class="wrap">
+  <div class="g2 mb48">
+    <div class="card">
+      <div class="clabel"><span>—</span> Assessment Scores: Hired vs. Not Hired</div>
+      <div class="scorelist" id="score-comparison"></div>
+      <div style="margin-top:22px;padding:16px;border:1px solid var(--border);font-size:13px;color:var(--gray-300);line-height:1.65;">
+        <span style="color:var(--accent);font-weight:600;">Composite ≥80</span> across all three dimensions identifies high-conversion profiles. Fast-track these to hiring manager within 24h.
+      </div>
+    </div>
+    <div class="card">
+      <div class="clabel"><span>—</span> Hire Rate by Seniority</div>
+      <div class="hbars" id="seniority-chart"></div>
+      <div style="margin-top:28px;padding-top:24px;border-top:1px solid var(--border);">
+        <div class="clabel"><span>—</span> Hire Rate by Work Mode</div>
+        <div class="hbars" id="workmode-chart"></div>
+      </div>
+    </div>
+  </div>
+  <div class="slabel">Conversion Signal Framework</div>
+  <div class="sgrid">
+    <div class="sblock">
+      <div class="shdr"><div class="sdot" style="background:var(--accent)"></div><div class="stitle" style="color:var(--accent)">High Probability Signals</div></div>
+      <ul class="slist">
+        <li>Technical score ≥ 80</li>
+        <li>Behavior score ≥ 78</li>
+        <li>Manager score ≥ 79</li>
+        <li>Response within 3 days</li>
+        <li>Staff or Senior seniority</li>
+        <li>GitHub or Inbound source</li>
+        <li>Híbrido work mode preference</li>
+      </ul>
+    </div>
+    <div class="sblock" style="border-left:1px solid var(--border);">
+      <div class="shdr"><div class="sdot" style="background:var(--amber)"></div><div class="stitle" style="color:var(--amber)">Persist with Caution</div></div>
+      <ul class="slist">
+        <li>Technical score 70–80</li>
+        <li>No response after 7 days — try one more touch</li>
+        <li>Timing mismatch — follow up in 30–45 days</li>
+        <li>Pleno with strong domain experience</li>
+        <li>LinkedIn passive (screen well if engaged)</li>
+      </ul>
+    </div>
+    <div class="sblock" style="border-top:1px solid var(--border);">
+      <div class="shdr"><div class="sdot" style="background:var(--red)"></div><div class="stitle" style="color:var(--red)">Low Conversion Signals</div></div>
+      <ul class="slist">
+        <li>No response after 10+ days and 3 touches</li>
+        <li>Technical score below 70</li>
+        <li>Low engagement flagged by recruiter</li>
+        <li>Salary mismatch surfaced early</li>
+        <li>Indicação with no warm intro context</li>
+        <li>Junior + Remote combination</li>
+      </ul>
+    </div>
+    <div class="sblock" style="border-top:1px solid var(--border);border-left:1px solid var(--border);">
+      <div class="shdr"><div class="sdot" style="background:var(--blue)"></div><div class="stitle" style="color:var(--blue)">When to Persist</div></div>
+      <ul class="slist">
+        <li>High scorer who missed first outreach</li>
+        <li>Timing mismatch — nurture and revisit</li>
+        <li>Headcount closed — hold in talent pool</li>
+        <li>LinkedIn passive with matching senior profile</li>
+        <li>Strong referrer endorsement with context</li>
+      </ul>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ AI ═══ -->
+<div class="page" id="page-ai">
+<div class="wrap">
+  <div class="ai-panel mb48">
+    <div class="ai-hdr">
+      <div class="ai-title">AI Recruiting Assistant</div>
+      <div class="ai-model">Claude · claude-sonnet-4 · Live</div>
+    </div>
+    <div class="ai-body">
+      <div class="qprompts">
+        <span>Quick prompts —</span>
+        <button class="qbtn" onclick="fillQ(this)" data-p="Which sourcing channel should I prioritize for technical roles and why?">Best channel for tech</button>
+        <button class="qbtn" onclick="fillQ(this)" data-p="What assessment score thresholds best predict hiring success in this dataset?">Score thresholds</button>
+        <button class="qbtn" onclick="fillQ(this)" data-p="When should a recruiter persist with a candidate who hasn't responded?">When to persist</button>
+        <button class="qbtn" onclick="fillQ(this)" data-p="What are the main bottlenecks in this recruitment funnel and how can we fix them?">Funnel bottlenecks</button>
+        <button class="qbtn" onclick="fillQ(this)" data-p="Analyze the performance gap between top recruiters Bruno and Ana vs lower performers Fernanda and Gustavo.">Recruiter gap</button>
+      </div>
+      <div class="ai-row">
+        <input class="ai-input" id="ai-q" type="text" placeholder="Ask anything about this recruitment dataset…">
+        <button class="ai-btn" id="ai-btn" onclick="askAI()">Ask Claude</button>
+      </div>
+      <div class="ai-out" id="ai-out"><span class="ai-ph">Your AI-powered insights will appear here. The assistant has full context of this dataset — funnel metrics, channel performance, recruiter benchmarks, rejection patterns, and score distributions.</span></div>
+    </div>
+  </div>
+  <div class="slabel">How AI Powers This Workflow</div>
+  <div class="ucgrid">
+    <div class="uc"><div class="ucn">01.</div><div class="uct">Sourcing Optimization</div><div class="ucd">AI ranks channels by predicted conversion per role type. Reallocates effort before contacts are wasted.</div></div>
+    <div class="uc"><div class="ucn">02.</div><div class="uct">Candidate Pre-Scoring</div><div class="ucd">Fit score prediction from profile + channel + historical data. Surfaces top candidates before manual review.</div></div>
+    <div class="uc"><div class="ucn">03.</div><div class="uct">Outreach Automation</div><div class="ucd">AI drafts personalized outreach by channel, role, and profile. Reduces manual writing time significantly.</div></div>
+    <div class="uc"><div class="ucn">04.</div><div class="uct">Drop-Off Alerts</div><div class="ucd">Flags candidates stalled in funnel past X days. Suggests persist or archive decisions automatically.</div></div>
+    <div class="uc"><div class="ucn">05.</div><div class="uct">Insight Q&A</div><div class="ucd">This panel — recruiters query the full dataset in natural language, replacing hours of manual report reading.</div></div>
+  </div>
+</div>
+</div>
+
+<!-- ═══ RECOMMENDATIONS ═══ -->
+<div class="page" id="page-recommendations">
+<div class="wrap">
+  <div class="slabel" style="margin-bottom:24px;">8 Evidence-Based Recommendations</div>
+
+  <div class="ritem pc">
+    <div class="rpri"><div class="rplab">Critical</div><div class="rnum">01</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Fix the no-response bottleneck first</div>
+      <div class="rtext">34.9% of the pipeline — 210 candidates — never responds. Deploy a 3-touch outreach sequence with variation in channel, timing, and message framing. A/B test subject lines by source. This single fix could unlock 30–50 additional hires at current downstream conversion rates.</div>
+      <div class="rimp">Recover 30–50 potential hires from lost pipeline</div>
+    </div>
+  </div>
+
+  <div class="ritem ph">
+    <div class="rpri"><div class="rplab">High</div><div class="rnum">02</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Double down on GitHub and Inbound</div>
+      <div class="rtext">GitHub (11%) and Inbound (10.1%) far outperform the 8.2% average. Allocate more sourcing hours to GitHub for technical roles. Invest in employer branding to grow organic Inbound volume. These channels deliver better quality per contact attempt.</div>
+      <div class="rimp">+3–5% hire rate on targeted requisitions</div>
+    </div>
+  </div>
+
+  <div class="ritem ph">
+    <div class="rpri"><div class="rplab">High</div><div class="rnum">03</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Audit and gate the Indicação (Referral) process</div>
+      <div class="rtext">Referrals rank last at 4.7% and 59.4% response rate. Introduce mandatory pre-qualification: referrers must confirm role fit, compensation range, and availability before any name enters the pipeline. Create a structured referral brief template.</div>
+      <div class="rimp">Raise Indicação from 4.7% toward industry avg of ~12%</div>
+    </div>
+  </div>
+
+  <div class="ritem ph">
+    <div class="rpri"><div class="rplab">High</div><div class="rnum">04</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Fast-track high scorers (≥80 composite) within 24h</div>
+      <div class="rtext">Hired candidates score ~10 points higher across all three assessment dimensions. A composite threshold of ≥80 reliably identifies high-conversion profiles. These candidates should reach the hiring manager within 24 hours — do not let top talent sit in queue.</div>
+      <div class="rimp">Prevent top-scorer drop-off due to process lag</div>
+    </div>
+  </div>
+
+  <div class="ritem pm">
+    <div class="rpri"><div class="rplab">Medium</div><div class="rnum">05</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Capture and share Bruno & Ana's playbook</div>
+      <div class="rtext">Bruno (15.3%) and Ana (13.3%) convert at 4× the rate of bottom performers. The gap is too large to be random. Run structured retrospectives — examine outreach scripts, channel mix, and evaluation criteria. Document and share as team playbooks.</div>
+      <div class="rimp">Raise team average from 8.2% toward 12%+</div>
+    </div>
+  </div>
+
+  <div class="ritem pm">
+    <div class="rpri"><div class="rplab">Medium</div><div class="rnum">06</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Build a talent nurture pool from timing and headcount rejections</div>
+      <div class="rtext">24 candidates were rejected for timing mismatch and 22 for headcount closure — not performance failures. These are warm, pre-screened profiles. Tag in ATS, set a 60-day re-engagement reminder, and contact them first when relevant requisitions reopen.</div>
+      <div class="rimp">Zero-cost pipeline recovery for future openings</div>
+    </div>
+  </div>
+
+  <div class="ritem pm">
+    <div class="rpri"><div class="rplab">Medium</div><div class="rnum">07</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Pilot AI-assisted pre-scoring before first outreach</div>
+      <div class="rtext">Use AI tools to score LinkedIn and GitHub profiles against role criteria before sending the first message — filtering by signals correlated with hire: seniority, relevant work history, tech stack alignment. Reduce wasted contacts and improve response rates through targeting precision.</div>
+      <div class="rimp">Reduce no-response rate by 10–15%</div>
+    </div>
+  </div>
+
+  <div class="ritem po" style="margin-bottom:48px;">
+    <div class="rpri"><div class="rplab">Ongoing</div><div class="rnum">08</div></div>
+    <div class="rcnt">
+      <div class="rtitle">Establish a monthly recruiter performance review cadence</div>
+      <div class="rtext">Track hire rate, response rate, and time-to-hire per recruiter every month. Build a shared dashboard visible to the full team. Use data to guide coaching conversations — not for blame, but for structured growth. Early detection of funnel gaps prevents compounding inefficiencies.</div>
+      <div class="rimp">Continuous improvement loop, early gap detection</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- FOOTER -->
+<div class="foot">
+  <div class="wrap foot-inner">
+    <div class="foot-txt">CloudWalk · People & Culture · Sourcing Intelligence · Fictional dataset</div>
+    <div class="foot-txt">AI-assisted analysis · Claude (Anthropic)</div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  funnel:[
+    {stage:'Sourced',n:601},{stage:'Responded',n:408},{stage:'Screened',n:308},
+    {stage:'Interviewed',n:234},{stage:'Test Taken',n:201},{stage:'Offer Sent',n:62},{stage:'Hired',n:49},
+  ],
+  channels:[
+    {name:'GitHub',total:73,responded:50,screened:38,hired:8,hire_rate:11.0,resp_rate:68.5},
+    {name:'Inbound',total:69,responded:55,screened:38,hired:7,hire_rate:10.1,resp_rate:79.7},
+    {name:'Hunting',total:75,responded:48,screened:37,hired:7,hire_rate:9.3,resp_rate:64.0},
+    {name:'Banco de Talentos',total:68,responded:51,screened:37,hired:6,hire_rate:8.8,resp_rate:75.0},
+    {name:'LinkedIn',total:81,responded:51,screened:44,hired:7,hire_rate:8.6,resp_rate:63.0},
+    {name:'Comunidade',total:89,responded:60,screened:47,hired:7,hire_rate:7.9,resp_rate:67.4},
+    {name:'Evento',total:82,responded:55,screened:37,hired:4,hire_rate:4.9,resp_rate:67.1},
+    {name:'Indicação',total:64,responded:38,screened:30,hired:3,hire_rate:4.7,resp_rate:59.4},
+  ],
+  recruiters:[
+    {name:'Bruno',total:98,responded:68,hired:15,hire_rate:15.3},
+    {name:'Ana',total:75,responded:59,hired:10,hire_rate:13.3},
+    {name:'Carla',total:101,responded:65,hired:9,hire_rate:8.9},
+    {name:'Diego',total:103,responded:70,hired:5,hire_rate:4.9},
+    {name:'Gustavo',total:121,responded:81,hired:6,hire_rate:5.0},
+    {name:'Fernanda',total:103,responded:65,hired:4,hire_rate:3.9},
+  ],
+  rejections:[
+    {reason:'No response',n:210},{reason:'Failed technical test',n:25},
+    {reason:'Timing mismatch',n:24},{reason:'Low technical fit',n:23},
+    {reason:'Low engagement',n:23},{reason:'Headcount closed',n:22},
+    {reason:'Salary mismatch',n:18},{reason:'Accepted another offer',n:18},
+  ],
+  scores:{
+    hired:{technical:82.4,behavior:80.1,manager:80.9},
+    not:{technical:72.9,behavior:74.0,manager:73.1},
+  },
+  seniority:[{level:'Staff',rate:13.3},{level:'Senior',rate:9.8},{level:'Pleno',rate:7.0},{level:'Junior',rate:4.6}],
+  workmode:[{mode:'Híbrido',rate:10.8},{mode:'Presencial',rate:8.8},{mode:'Remoto',rate:5.0}],
+};
+
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  btn.classList.add('active');
+  setTimeout(animateBars,80);
+}
+
+function renderFunnel(){
+  const el=document.getElementById('funnel-chart');
+  const max=DATA.funnel[0].n;
+  el.innerHTML=DATA.funnel.map((d,i)=>{
+    const w=(d.n/max*100).toFixed(1);
+    const prev=i===0?'baseline':((d.n/DATA.funnel[i-1].n*100).toFixed(0)+'% of prev');
+    return `<div class="frow">
+      <div class="fstage">${d.stage}</div>
+      <div class="ftrack"><div class="fbar${i>4?' dim':''}" style="width:0%" data-w="${w}%"></div></div>
+      <div class="fcnt">${d.n}</div>
+      <div class="fpct">${prev}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderHBars(elId,items,lk,vk,maxV,unit='%',colorFn=null){
+  const el=document.getElementById(elId);if(!el)return;
+  const max=maxV||Math.max(...items.map(i=>i[vk]));
+  el.innerHTML=items.map(item=>{
+    const w=(item[vk]/max*100).toFixed(1);
+    const cls=colorFn?colorFn(item[vk]):'';
+    return `<div class="hrow">
+      <div class="hmeta"><span class="hlabel">${item[lk]}</span><span class="hval">${item[vk]}${unit}</span></div>
+      <div class="htrack"><div class="hfill ${cls}" style="width:0%" data-w="${w}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderRejections(){
+  const el=document.getElementById('rejection-chart');
+  const max=DATA.rejections[0].n;
+  el.innerHTML=DATA.rejections.map((r,i)=>{
+    const w=(r.n/max*100).toFixed(1);
+    const cls=i===0?'red':i<3?'amber':'dim';
+    return `<div class="hrow">
+      <div class="hmeta"><span class="hlabel">${r.reason}</span><span class="hval">${r.n}</span></div>
+      <div class="htrack"><div class="hfill ${cls}" style="width:0%" data-w="${w}%"></div></div>
+    </div>`;
+  }).join('');
+}
+
+function renderChannelTable(){
+  const el=document.getElementById('channel-table');if(!el)return;
+  const s=[...DATA.channels].sort((a,b)=>b.hire_rate-a.hire_rate);
+  el.innerHTML=`<thead><tr><th>Channel</th><th>Sourced</th><th>Responded</th><th>Screened</th><th>Hired</th><th>Response Rate</th><th>Hire Rate</th><th>Signal</th></tr></thead><tbody>`
+  +s.map(c=>{
+    const sig=c.hire_rate>=10?'<span class="tag tg">Strong</span>':c.hire_rate>=8?'<span class="tag ta">Average</span>':'<span class="tag tr">Weak</span>';
+    const ac=c.hire_rate>=10?'a':c.hire_rate<6?'m':'';
+    return `<tr><td class="s">${c.name}</td><td>${c.total}</td><td>${c.responded}</td><td>${c.screened}</td><td>${c.hired}</td><td>${c.resp_rate}%</td><td class="${ac}">${c.hire_rate}%</td><td>${sig}</td></tr>`;
+  }).join('')+'</tbody>';
+}
+
+function renderRecruiterTable(){
+  const el=document.getElementById('recruiter-table');if(!el)return;
+  const s=[...DATA.recruiters].sort((a,b)=>b.hire_rate-a.hire_rate);
+  el.innerHTML=`<thead><tr><th>Recruiter</th><th>Pipeline</th><th>Responded</th><th>Hired</th><th>Response Rate</th><th>Hire Rate</th><th>Tier</th></tr></thead><tbody>`
+  +s.map(r=>{
+    const rr=((r.responded/r.total)*100).toFixed(1);
+    const tier=r.hire_rate>=13?'<span class="tag tg">Top</span>':r.hire_rate>=8?'<span class="tag ta">Mid</span>':'<span class="tag tr">Below Avg</span>';
+    const ac=r.hire_rate>=13?'a':r.hire_rate<6?'m':'';
+    return `<tr><td class="s">${r.name}</td><td>${r.total}</td><td>${r.responded}</td><td>${r.hired}</td><td>${rr}%</td><td class="${ac}">${r.hire_rate}%</td><td>${tier}</td></tr>`;
+  }).join('')+'</tbody>';
+}
+
+function renderScores(){
+  const el=document.getElementById('score-comparison');if(!el)return;
+  const dims=[{k:'technical',l:'Technical Score'},{k:'behavior',l:'Behavior Score'},{k:'manager',l:'Manager Score'}];
+  el.innerHTML=dims.map(d=>{
+    const h=DATA.scores.hired[d.k],n=DATA.scores.not[d.k];
+    return `<div>
+      <div class="score-name">${d.l}</div>
+      <div class="sbars">
+        <div class="srow">
+          <div class="swho">Hired</div>
+          <div class="strack"><div class="sfill h" style="width:0%" data-w="${h}%"></div></div>
+          <div class="sval" style="color:var(--accent)">${h}</div>
+        </div>
+        <div class="srow">
+          <div class="swho">Not Hired</div>
+          <div class="strack"><div class="sfill n" style="width:0%" data-w="${n}%"></div></div>
+          <div class="sval" style="color:var(--gray-600)">${n}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function animateBars(){
+  requestAnimationFrame(()=>{
+    document.querySelectorAll('[data-w]').forEach(el=>{
+      setTimeout(()=>{el.style.width=el.dataset.w;},60);
+    });
+  });
+}
+
+// AI
+const SYS=`You are a senior talent acquisition analyst at CloudWalk, a Brazilian fintech company. Answer recruiters' questions with precision using this data:
+
+FUNNEL: Sourced 601 → Responded 408 (67.9%) → Screened 308 → Interviewed 234 → Test 201 → Offer 62 → Hired 49 (8.2%)
+
+CHANNELS (hire rate): GitHub 11.0% (68.5% resp) | Inbound 10.1% (79.7% resp, highest) | Hunting 9.3% | Banco de Talentos 8.8% | LinkedIn 8.6% (86.3% post-response screen pass, highest) | Comunidade 7.9% | Evento 4.9% | Indicação 4.7% (59.4% resp, worst)
+
+RECRUITERS (hire rate): Bruno 15.3% (98 pipeline) | Ana 13.3% (75) | Carla 8.9% (101) | Diego 4.9% (103) | Gustavo 5.0% (121) | Fernanda 3.9% (103)
+
+TOP REJECTIONS: No response 210 (35%) | Failed test 25 | Timing mismatch 24 | Low technical fit 23 | Low engagement 23 | Headcount closed 22 | Salary mismatch 18 | Accepted another offer 18
+
+SCORES (avg hired vs not-hired): Technical 82.4 vs 72.9 | Behavior 80.1 vs 74.0 | Manager 80.9 vs 73.1
+
+SENIORITY conversion: Staff 13.3% | Senior 9.8% | Pleno 7.0% | Junior 4.6%
+WORK MODE: Híbrido 10.8% | Presencial 8.8% | Remoto 5.0%
+Response time: Hired avg 5.7d, Not hired 6.0d
+
+Be specific, data-driven, direct. Use exact numbers. Give actionable recommendations.`;
+
+async function askAI(){
+  const q=document.getElementById('ai-q').value.trim();if(!q)return;
+  const out=document.getElementById('ai-out'),btn=document.getElementById('ai-btn');
+  btn.disabled=true;btn.textContent='Thinking…';
+  out.innerHTML=`<div class="ai-loading"><div class="dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><span>Claude is analyzing the data…</span></div>`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:900,system:SYS,messages:[{role:'user',content:q}]})
+    });
+    const data=await res.json();
+    const text=data.content?.find(b=>b.type==='text')?.text||'No response.';
+    out.innerHTML=text.replace(/\n\n/g,'<br><br>').replace(/\*\*(.*?)\*\*/g,'<strong style="color:var(--white)">$1</strong>').replace(/\*(.*?)\*/g,'<em>$1</em>');
+  }catch(e){out.innerHTML=`<span style="color:var(--red)">Error: ${e.message}</span>`;}
+  btn.disabled=false;btn.textContent='Ask Claude';
+}
+
+function fillQ(btn){document.getElementById('ai-q').value=btn.dataset.p;document.getElementById('ai-q').focus();}
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.activeElement.id==='ai-q')askAI();});
+
+window.addEventListener('load',()=>{
+  renderFunnel();renderRejections();renderChannelTable();renderRecruiterTable();renderScores();
+  const ch=[...DATA.channels].sort((a,b)=>b.hire_rate-a.hire_rate);
+  renderHBars('channel-hire-chart',ch,'name','hire_rate',15,'%',v=>v>=10?'green':v>=8?'':v>=5?'amber':'red');
+  const cr=[...DATA.channels].sort((a,b)=>b.resp_rate-a.resp_rate);
+  renderHBars('channel-resp-chart',cr,'name','resp_rate',100,'%',v=>v>=75?'green':v>=65?'':'amber');
+  const rh=[...DATA.recruiters].sort((a,b)=>b.hire_rate-a.hire_rate);
+  renderHBars('rec-hire-chart',rh,'name','hire_rate',20,'%',v=>v>=13?'green':v>=8?'':'red');
+  const rv=[...DATA.recruiters].sort((a,b)=>b.total-a.total);
+  renderHBars('rec-vol-chart',rv,'name','total',130,' cands',()=>'dim');
+  renderHBars('seniority-chart',DATA.seniority,'level','rate',15,'%',v=>v>=13?'green':v>=9?'':'amber');
+  renderHBars('workmode-chart',DATA.workmode,'mode','rate',15,'%',v=>v>=10?'green':v>=8?'':'red');
+  setTimeout(animateBars,150);
+});
+</script>
+</body>
+</html>
