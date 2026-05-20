@@ -7,7 +7,7 @@ Data analysis of a fictional recruitment dataset (601 candidates, 8 channels, 6 
 
 ## How to use the dashboard
 Download the HTML file and open it in your browser. No setup needed.
-The AI Assistant tab is powered by Claude (Anthropic) and works live.
+You can update the dashboard by adding a new Excel file.
 
 ## Key findings
 - GitHub and Inbound are the top-converting channels (11% and 10.1%)
